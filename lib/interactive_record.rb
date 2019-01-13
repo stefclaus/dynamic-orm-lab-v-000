@@ -4,12 +4,26 @@ require 'active_support/inflector'
 class InteractiveRecord
 
   def self.table_name
+    self.to_s.downcase.pluralize
   end
 
   def self.column_names
+    DB[:conn].results_as_hash = true
+
+    sql = "pragma table_info('#{table_name}')"
+
+    table_info = DB[:conn].execute(sql)
+    column_names = []
+    table_info.each do |row|
+      column_names << row["name"]
+    end
+    column_names.compact
   end
 
-  def initialize
+  def initialize(options={})
+    options.each do |property, value|
+      self.send("#{property}=", value)
+    end
   end
 
   def attr_accessor
@@ -24,7 +38,7 @@ class InteractiveRecord
   def values_for_insert
   end
 
-  def safe
+  def save
   end
 
   def self.find_by_name
@@ -32,6 +46,6 @@ class InteractiveRecord
 
   def self.find_by
   end
-  
+
 
 end
